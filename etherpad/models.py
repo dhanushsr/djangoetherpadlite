@@ -13,10 +13,10 @@ class Pad(models.Model):
     """Schema and methods for etherpad-lite pads
     """
     name = models.CharField(max_length=256)
-    server_api_url = models.URLField(max_length= 256, verbose_name= _('URL'))
-    server_apikey = models.CharField(max_length=256, verbose_name=_('API key'))
+    server_api_url = "http://localhost:9001/api"
+    server_apikey = "5a8e9ba6172d91c6520c7d67d46a0b4600b1ed5ff02ec514b9946c471510984e"
     # group = models.ForeignKey(Group)
-    groupID = models.CharField(max_length=256, blank= True)
+    groupID = "g.0iZ2zvCqPNpJ7qBp"
 
 
     def __str__(self):

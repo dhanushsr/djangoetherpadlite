@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from etherpad import views
 
 urlpatterns = [
+    url(r'^$', views.home, name='home'),
     url(r'^admin/', admin.site.urls),
+    url(r'^etherpad/(?P<pk>\d+)/$', views.pad, name='pad_view'),
 ]
