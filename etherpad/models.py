@@ -8,49 +8,172 @@ from py_etherpad import EtherpadLiteClient
 import string
 import random
 
-# Create your models here.
+
+# Schema and methods for etherpad-lite servers
+class PadServer(models.Model):
+	title = models.CharField(max_length=256)
+	url = models.URLField(max_length=256, verbose_name=_('URL'))
+	apikey = "73a9f9ef4f291d9d263376ae9dda99b08d0463168ef71703fd8a37cf20716323"
+	notes = models.TextField(_('description'), null=True)
+
+	class Meta:
+		verbose_name = _('server')
+
+	def __str__(self):
+		return self.url
+
+	@property
+	def apiurl(self):
+		if self.url[-1:] == '/':
+			return "%sapi" % self.url
+		else:
+			return "%s/api" % self.url
+
+
+# Schema and methods for etherpad-lite groups
+class PadGroup(models.Model):
+	group = models.ForeignKey(Group, default= "")
+	groupID = models.CharField(max_length=256, blank=True)
+	server = models.ForeignKey(PadServer, default = "")
+
+	class Meta:
+		verbose_name = _('group')
+
+	def __unicode__(self):
+		return self.group.__str__()
+
+	@property
+	def epclient(self):
+		return EtherpadLiteClient(self.server.apikey, self.server.apiurl)
+
+	def _get_random_id(self, size=6,
+					   chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
+		return ''.join(random.choice(chars) for x in range(size))
+
+	def EtherMap(self):
+		result = self.epclient.createGroupIfNotExistsFor(
+			self.group.__str__() + self._get_random_id() +
+			self.group.id.__str__()
+		)
+		self.groupID = result['groupID']
+		return result
+
+	def save(self, *args, **kwargs):
+		if not self.id:
+			self.EtherMap()
+		super(PadGroup, self).save(*args, **kwargs)
+
+	def Destroy(self):
+		# First find and delete all associated pads
+		Pad.objects.filter(group=self).delete()
+		return self.epclient.deleteGroup(self.groupID)
+
+
+def padGroupDel(sender, **kwargs):
+	"""Make sure groups are purged from etherpad when deleted
+	"""
+	grp = kwargs['instance']
+	grp.Destroy()
+
+
+pre_delete.connect(padGroupDel, sender=PadGroup)
+
+
+def groupDel(sender, **kwargs):
+	"""Make sure our groups are destroyed properly when auth groups are deleted
+	"""
+	grp = kwargs['instance']
+	# Make shure auth groups without a pad group can be deleted, too.
+	try:
+		padGrp = PadGroup.objects.get(group=grp)
+		padGrp.Destroy()
+	except Exception:
+		pass
+
+
+pre_delete.connect(groupDel, sender=Group)
+
+
 class Pad(models.Model):
-    """Schema and methods for etherpad-lite pads
-    """
-    name = models.CharField(max_length=256)
-    server_api_url = "http://localhost:9001/api"
-    server_apikey = "5a8e9ba6172d91c6520c7d67d46a0b4600b1ed5ff02ec514b9946c471510984e"
-    # group = models.ForeignKey(Group)
-    groupID = "g.0iZ2zvCqPNpJ7qBp"
+	"""Schema and methods for etherpad-lite pads
+	"""
+	name = models.CharField(max_length=256)
+	server = models.ForeignKey(PadServer, default = "")
+	group = models.ForeignKey(PadGroup, default = "")
 
+	def __unicode__(self):
+		return self.name
 
-    def __str__(self):
-        return self.name
+	@property
+	def padid(self):
+		return "%s$%s" % (self.group.groupID, self.name)
 
-    @property
-    def padid(self):
-        return "%s" % self.name
+	@property
+	def epclient(self):
+		return EtherpadLiteClient(self.server.apikey, self.server.apiurl)
 
-    @property
-    def epclient(self):
-        return EtherpadLiteClient(self.server_apikey, self.server_api_url)
+	def Create(self):
+		return self.epclient.createGroupPad(self.group.groupID, self.name)
 
-    def Create(self):
-        return self.epclient.createGroupPad(self.groupID, self.name)
+	def Destroy(self):
+		return self.epclient.deletePad(self.padid)
 
-    def Destroy(self):
-        return self.epclient.deletePad(self.padid)
+	def isPublic(self):
+		result = self.epclient.getPublicStatus(self.padid)
+		return result['publicStatus']
 
-    def isPublic(self):
-        result = self.epclient.getPublicStatus(self.padid)
-        return result['publicStatus']
+	def ReadOnly(self):
+		return self.epclient.getReadOnlyID(self.padid)
 
-    def ReadOnly(self):
-        return self.epclient.getReadOnlyID(self.padid)
-
-    def save(self, *args, **kwargs):
-        self.Create()
-        super(Pad, self).save(*args, **kwargs)   
+	def save(self, *args, **kwargs):
+		self.Create()
+		super(Pad, self).save(*args, **kwargs)
 
 
 def padDel(sender, **kwargs):
-    """Make sure pads are purged from the etherpad-lite server on deletion
-    """
-    pad = kwargs['instance']
-    pad.Destroy()
+	"""Make sure pads are purged from the etherpad-lite server on deletion
+	"""
+	pad = kwargs['instance']
+	pad.Destroy()
 pre_delete.connect(padDel, sender=Pad)
+
+class PadAuthor(models.Model):
+    """Schema and methods for etherpad-lite authors
+    """
+    user = models.ForeignKey(User)
+    authorID = models.CharField(max_length=256, blank=True)
+    server = models.ForeignKey(PadServer)
+    group = models.ManyToManyField(
+        PadGroup,
+        blank=True,
+        related_name='authors'
+    )
+
+    class Meta:
+        verbose_name = _('author')
+
+    def __unicode__(self):
+        return self.user
+
+    def EtherMap(self):
+        epclient = EtherpadLiteClient(self.server.apikey, self.server.apiurl)
+        result = epclient.createAuthorIfNotExistsFor(
+            self.user.id.__str__(),
+            name=self.__unicode__()
+        )
+        self.authorID = result['authorID']
+        return result
+
+    def GroupSynch(self, *args, **kwargs):
+        for ag in self.user.groups.all():
+            try:
+                gr = PadGroup.objects.get(group=ag)
+            except PadGroup.DoesNotExist:
+                gr = False
+            if (isinstance(gr, PadGroup)):
+                self.group.add(gr)
+        super(PadAuthor, self).save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.EtherMap()
+        super(PadAuthor, self).save(*args, **kwargs)
