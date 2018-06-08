@@ -25,7 +25,7 @@ SECRET_KEY = 'p3i_xyo+pmq5cbs%fr3#qrlh9+rk&xk1=-pms-d7bdx*x$j#1e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["dito.serveo.net","localhost"]
+ALLOWED_HOSTS = ["gratia.serveo.net","localhost"]
 
 
 # Application definition
@@ -50,8 +50,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 ROOT_URLCONF = 'editor.urls'
 
 TEMPLATES = [

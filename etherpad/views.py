@@ -8,7 +8,7 @@ from django.template import RequestContext
 from django.contrib.auth.models import User, Group
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.sessions.backends.base import SessionBase
 # additional imports
 from py_etherpad import EtherpadLiteClient
 
@@ -65,7 +65,7 @@ def padDelete(request, pk):
     con = {
         'action': '/etherpad/delete/' + pk + '/',
         'question': _('Really delete this pad?'),
-        'title': _('Deleting %(pad)s') % {'pad': pad.__unicode__()}
+        'title': _('Deleting  article %(pad)s') % {'pad': pad.__unicode__()}
     }
     return render(request, 'confirm.html', con)
 
@@ -176,27 +176,19 @@ def pad(request, pk):
         )
     except Exception as e:
         return render(request, 'pad.html', {'pad':pad, 'link': padLink, 'server':server, 'uname': author.user.__str__(), 'error': _('etherpad-lite session request returned:') + ' "' + str(e) + '"'})
-
+    
     response = render(request, 'pad.html', {'pad': pad,'link': padLink,'server': server,'uname': author.user.__str__() ,'error': False} )
 
     # Delete the existing session first
-    # if ('padSessionID' in request.COOKIES):
-    #     epclient.deleteSession(request.COOKIES['sessionID'])
-    #     response.delete_cookie('sessionID', server.hostname)
-    #     response.delete_cookie('padSessionID')
+    if ('padSessionID' in request.COOKIES):
+        epclient.deleteSession(request.COOKIES['sessionID'])
+        response.delete_cookie('sessionID', server.hostname)
+        response.delete_cookie('padSessionID')
 
     # Set the new session cookie for both the server and the local site
-    response.set_cookie(
-        key = 'sessionID',
-        value=result['sessionID'],
-        expires=expires,
-        domain=server.hostname,
-        httponly=False
-    )
-    response.set_cookie(
-        key ='padSessionID',
-        value=result['sessionID'],
-        expires=expires,
-        httponly=False
-    )
+    response.set_cookie(key = 'sessionID',value=result['sessionID'],expires=expires,domain=server.hostname,httponly=False)
+    response.set_cookie(key ='padSessionID',value=result['sessionID'],expires=expires,httponly=False)
+    # request.session['sessionID']= result['sessionID']
+    # request.session['padSessionID']= result['sessionID']
+    # request.set_expiry(expires)
     return response

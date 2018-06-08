@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% load i18n %}
 
-{% block breadcrumb %}{{name}}{% endblock %}
+{% block title %}{{name}}{% endblock %}
 
 {% block content %}
 
-  <div class='inliner'><h1>{% trans "PADS:" %}</h2></div>
+  <div class='inliner'><h1>PADS:</h2></div>
   <div class='inliner'>
     {% for group, data in groups.items %}
   <table class="table">
@@ -22,13 +21,13 @@
             <a href="/etherpad/{{pad.id}}">{{pad.name}}</a>
           </td>
           <td> 
-            <a class="action act-del" href="/etherpad/delete/{{pad.id}}">{% trans "Delete" %}</a>
+            <a class="action act-del" href="/etherpad/delete/{{pad.id}}">Delete</a>
            </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
-  <a class="action act-add" href="/etherpad/create/{{data.group.id}}">{% trans "Add Article" %}</a>
+  <a class="action act-add" href="/etherpad/create/{{data.group.id}}">Add Article</a>
   {% endfor %}
   </div>
 {% endblock %}

@@ -1,16 +1,14 @@
 {% extends "base.html" %}
-{% load i18n %}
 
-{% block breadcrumb %}{{title}}{% endblock %}
-
+{% block title %}Confirm {{action}}{% endblock %}
 {% block content %}
 
 <h1>{{title}}</h1>
 
 <form action="{{action}}" method="post">{% csrf_token %}
-  <p>{{question}}</p>
-  <input class="submit" type="submit" name="cancel" value="{% trans "No" %}" />
-  <input class="submit" type="submit" name="confirm" value="{% trans "Yes" %}" />
+  <p style = "font-size: 20px">{{question}}</p>
+  <input class="submit btn btn-primary" style="padding-left: 25px; padding-right: 25px;font-size: 20px" type="submit" name="cancel" value= "No" />
+  <input class="submit btn btn-primary" style="padding-left: 25px; padding-right: 25px;font-size: 20px" type="submit" name="confirm" value="Yes" />
 </form>
 
 {% endblock %}
