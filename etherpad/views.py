@@ -150,18 +150,18 @@ def pad(request, pk):
     server = urlparse(pad.server.url)
     author = PadAuthor.objects.get(user=request.user)
 
-    if author not in pad.group.authors.all():
-        return render(
-            request,
-            'pad.html',
-            {
-                'pad': pad,
-                'link': padLink,
-                'server': server,
-                'uname': author.user.__unicode__(),
-                'error': _('You are not allowed to view or edit this pad')
-            }
-        )
+    # if author not in pad.group.authors.all():
+    #     return render(
+    #         request,
+    #         'pad.html',
+    #         {
+    #             'pad': pad,
+    #             'link': padLink,
+    #             'server': server,
+    #             'uname': author.user.__unicode__(),
+    #             'error': _('You are not allowed to view or edit this pad')
+    #         }
+    #     )
     # Create the session on the etherpad-lite side
     expires = datetime.datetime.utcnow() + datetime.timedelta(
         seconds=config.SESSION_LENGTH
@@ -186,7 +186,7 @@ def pad(request, pk):
         response.delete_cookie('padSessionID')
 
     # Set the new session cookie for both the server and the local site
-    response.set_cookie(key = 'sessionID',value=result['sessionID'],expires=expires,domain=server.hostname,httponly=False)
+    response.set_cookie(key = 'sessionID',value=result['sessionID'],expires=expires,httponly=False)
     response.set_cookie(key ='padSessionID',value=result['sessionID'],expires=expires,httponly=False)
     # request.session['sessionID']= result['sessionID']
     # request.session['padSessionID']= result['sessionID']

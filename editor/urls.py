@@ -50,10 +50,10 @@ urlpatterns = [
 
     url(r'^admin/', admin.site.urls),
 
-    url(r'^etherpad/(?P<pk>\d+)/$', views.pad, name='pad_view'),
+    url(r'^article/(?P<pk>\d+)/$', views.pad, name='pad_view'),
      url(r'^accounts/profile/$', views.profile, name='profile'),
-    url(r'^etherpad/create/(?P<pk>\d+)/$', views.padCreate, name='padcreate'),
-    url(r'^etherpad/delete/(?P<pk>\d+)/$', views.padDelete, name='paddelete'),
+    url(r'^article/create/(?P<pk>\d+)/$', views.padCreate, name='padcreate'),
+    url(r'^article/delete/(?P<pk>\d+)/$', views.padDelete, name='paddelete'),
     url(r'^group/create/$', views.groupCreate, name='grpcreate')
 ]
 

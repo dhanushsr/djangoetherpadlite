@@ -13,7 +13,7 @@ import random
 class PadServer(models.Model):
 	title = models.CharField(max_length=256)
 	url = models.URLField(max_length=256, verbose_name=_('URL'))
-	apikey = "73a9f9ef4f291d9d263376ae9dda99b08d0463168ef71703fd8a37cf20716323"
+	apikey = "b57310d01317f881ad79c65667648fd6d7825fbd45a3e580a2ce347831b6bd53"
 	notes = models.TextField(_('description'), null=True)
 
 	class Meta:
@@ -39,8 +39,11 @@ class PadGroup(models.Model):
 	class Meta:
 		verbose_name = _('group')
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.group.__str__()
+
+	def __unicode__(self):
+		return self.group
 
 	@property
 	def epclient(self):
@@ -101,7 +104,7 @@ class Pad(models.Model):
 	server = models.ForeignKey(PadServer, default = "")
 	group = models.ForeignKey(PadGroup, default = "")
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.name
 
 	@property
@@ -152,14 +155,15 @@ class PadAuthor(models.Model):
     class Meta:
         verbose_name = _('author')
 
-    def __unicode__(self):
-        return self.user
+    def __str__(self):
+        return self.user.__str__()
+	
 
     def EtherMap(self):
         epclient = EtherpadLiteClient(self.server.apikey, self.server.apiurl)
         result = epclient.createAuthorIfNotExistsFor(
             self.user.id.__str__(),
-            name=self.__unicode__()
+            name=self.__str__()
         )
         self.authorID = result['authorID']
         return result

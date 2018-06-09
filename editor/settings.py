@@ -25,7 +25,7 @@ SECRET_KEY = 'p3i_xyo+pmq5cbs%fr3#qrlh9+rk&xk1=-pms-d7bdx*x$j#1e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["gratia.serveo.net","localhost"]
+ALLOWED_HOSTS = ["gratia.serveo.net","localhost","10.196.18.9"]
 
 
 # Application definition

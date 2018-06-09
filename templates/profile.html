@@ -18,16 +18,16 @@
       {%for pad in data.pads%}
         <tr>
           <td>
-            <a href="/etherpad/{{pad.id}}">{{pad.name}}</a>
+            <a href="/article/{{pad.id}}">{{pad.name}}</a>
           </td>
           <td> 
-            <a class="action act-del" href="/etherpad/delete/{{pad.id}}">Delete</a>
+            <a class="action act-del" href="/article/delete/{{pad.id}}">Delete</a>
            </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
-  <a class="action act-add" href="/etherpad/create/{{data.group.id}}">Add Article</a>
+  <a class="action act-add" href="/article/create/{{data.group.id}}">Add Article</a>
   {% endfor %}
   </div>
 {% endblock %}
